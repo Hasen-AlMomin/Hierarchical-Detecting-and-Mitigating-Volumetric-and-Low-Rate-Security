@@ -7,8 +7,12 @@ Input rows:  time, FER, SIGS, FSR, PLV, BLV, type      (switch_<dpid>_data.csv)
          or: FER, SIGS, FSR, PLV, BLV, type            (result.csv)
 type: 0 = normal, 1 = volumetric attack, 2 = low-rate attack
 
-Each file argument is PATH or PATH:LABEL. PATH:LABEL forces every row of the
-file to LABEL (useful for older files whose type column is 0/1 only).
+Each file argument is PATH, PATH:LABEL or PATH:FROM=TO[,FROM=TO...]
+    PATH:LABEL    forces EVERY row of the file to LABEL (a file that holds one class)
+    PATH:1=2      changes label 1 to 2 and leaves the other labels as they are
+                  (a mixed file labelled 0 = normal / 1 = attack whose attack is
+                  low-rate: stage2.csv:1=2)
+Headerless 6-column files (FER,SIGS,FSR,PLV,BLV,label) are read as they are.
 
 Stage 1  volumetric (1) against everything else (normal + low-rate), per interval.
 Stage 2  low-rate (1) against normal (0), on stride-1 windows of 10 consecutive
@@ -27,6 +31,7 @@ Examples
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -61,11 +66,26 @@ class Segment(object):
 
 
 def split_label(arg):
-    """'file.csv:2' -> ('file.csv', 2);  'file.csv' -> ('file.csv', None)."""
+    """
+    'file.csv'      -> ('file.csv', None)             labels are used as written
+    'file.csv:2'    -> ('file.csv', 2)                every row gets label 2
+    'file.csv:1=2'  -> ('file.csv', {1: 2})           label 1 becomes 2, others stay
+    """
     head, sep, tail = arg.rpartition(":")
-    if sep and tail in ("0", "1", "2"):
-        return head, int(tail)
+    if sep and head:
+        if tail in ("0", "1", "2"):
+            return head, int(tail)
+        if re.fullmatch(r"[0-2]=[0-2](,[0-2]=[0-2])*", tail):
+            return head, {int(p.split("=")[0]): int(p.split("=")[1]) for p in tail.split(",")}
     return arg, None
+
+
+def apply_label_spec(label, spec):
+    if spec is None:
+        return label
+    if isinstance(spec, dict):
+        return spec.get(label, label)
+    return spec
 
 
 def parse_row(row):
@@ -111,8 +131,7 @@ def read_segments(path, forced_label, interval, gap_factor):
             if parsed is None:
                 continue
             t, feats, label = parsed
-            if forced_label is not None:
-                label = forced_label
+            label = apply_label_spec(label, forced_label)
             new = cur is None or label != cur.label
             if (not new and t is not None and last_t is not None
                     and (t - last_t).total_seconds() > gap_factor * interval):
@@ -206,7 +225,7 @@ def evaluate_end_to_end(detector, test_parts):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("files", nargs="+", help="training CSV files (PATH or PATH:LABEL)")
+    ap.add_argument("files", nargs="+", help="training CSV files (PATH, PATH:LABEL or PATH:FROM=TO)")
     ap.add_argument("--test-files", nargs="*", default=[],
                     help="CSV files used only for testing (separate runs)")
     ap.add_argument("--model-dir", default="models")
