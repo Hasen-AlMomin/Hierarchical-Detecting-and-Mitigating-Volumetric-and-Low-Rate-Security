@@ -23,7 +23,7 @@ A lab framework for detecting **DDoS attacks** in a **Software-Defined Network (
 ## How It Works
 
 ```
- Mininet hosts ──► Open vSwitch ◄──── OpenFlow ────► Ryu controller (app1.py)
+ Mininet hosts ──► Open vSwitch ◄──── OpenFlow ────► Ryu controller (app1.py) Hierarchal framework Detection 
  (normal + attack                                      │
   traffic)                                             ▼
                                               flow statistics collected
@@ -222,20 +222,6 @@ Fill in this table with the output of your scripts.
 | `hping3: command not found` | `sudo apt-get install hping3` |
 | `python: command not found` | Use `python3`, as in the commands above |
 
-## Responsible Use
-
-The attack commands in this repository are for **educational and research purposes in an isolated, emulated network only**. Never run flood or scanning tools against networks or machines you do not own or do not have explicit permission to test.
-
-## Citation
-
-If you use this work in research, please cite it:
-
-```bibtex
-@misc{<citation-key>,
-  author = {<Your Name>},
-  title  = {Robust DDoS Detection in Software-Defined Networks using Ensemble Voting and Feature Extraction},
-  year   = {<year>},
-  url    = {https://github.com/<your-username>/<your-repo>}
 }
 ```
 
