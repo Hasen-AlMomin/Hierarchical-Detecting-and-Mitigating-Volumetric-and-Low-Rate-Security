@@ -267,7 +267,19 @@ This reads the labelled intervals, trains Stage 1 and Stage 2, prints the evalua
 | `--skip-first` | warm-up rows dropped at the start of every run | `1` |
 | `--model-dir` | output folder | `models` |
 
-A file argument can also be written `PATH:LABEL` (for example `old_attack.csv:1`) to force every row of that file to one label, which is useful for older files whose `type` column only has 0 and 1.
+A file argument can also carry a label rule after a colon, which is how files with an older labelling are used:
+
+| Argument | Effect |
+|----------|--------|
+| `data.csv` | labels are used as written (0 normal, 1 volumetric, 2 low-rate) |
+| `attack_only.csv:1` | **every** row of the file gets label 1 (a file that holds a single class) |
+| `stage2.csv:1=2` | label 1 becomes 2 and the other labels stay (a mixed file with 0 = normal and 1 = attack whose attack is low-rate) |
+
+Headerless files with six columns (`FER,SIGS,FSR,PLV,BLV,label`) are read as they are. For example, a Stage 1 file labelled 0 = normal / 1 = volumetric and a Stage 2 file labelled 0 = normal / 1 = low-rate attack are trained together with:
+
+```bash
+python3 train_hierarchical.py stage1.csv stage2.csv:1=2
+```
 
 Runs that are appended to the same CSV are separated automatically (at a header line, a label change, or a time gap of more than 2.5 intervals), so a window never spans two different runs.
 
@@ -372,6 +384,20 @@ Fill in this table with the output of `train_hierarchical.py` (`models/metrics.j
 | Low-rate attack is not detected | The attack must last longer than one window (30 s); check `detections_switch_<dpid>.csv`, and make sure the training data contains enough low-rate and normal runs collected with the same `INTERVAL` |
 | Ports are not blocked | Blocking needs `PREVENTION = 1`, an active alert, and a source IP that was never seen in an ARP packet on that port |
 
+## Responsible Use
+
+The attack commands in this repository are meant **only** for the emulated Mininet network on your own machine. Never run them against hosts, networks or services that you do not own or have explicit permission to test.
+
+## Citation
+
+If you use this work, please cite it (fill in the details):
+
+```bibtex
+@misc{<key>,
+  author       = {<author>},
+  title        = {<title>},
+  year         = {<year>},
+  howpublished = {\url{https://github.com/<your-username>/<your-repo>}}
 }
 ```
 
