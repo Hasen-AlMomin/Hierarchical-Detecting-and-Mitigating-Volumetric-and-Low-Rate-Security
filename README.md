@@ -372,20 +372,6 @@ Fill in this table with the output of `train_hierarchical.py` (`models/metrics.j
 | Low-rate attack is not detected | The attack must last longer than one window (30 s); check `detections_switch_<dpid>.csv`, and make sure the training data contains enough low-rate and normal runs collected with the same `INTERVAL` |
 | Ports are not blocked | Blocking needs `PREVENTION = 1`, an active alert, and a source IP that was never seen in an ARP packet on that port |
 
-## Responsible Use
-
-The attack commands in this repository are meant **only** for the emulated Mininet network on your own machine. Never run them against hosts, networks or services that you do not own or have explicit permission to test.
-
-## Citation
-
-If you use this work, please cite it (fill in the details):
-
-```bibtex
-@misc{<key>,
-  author       = {<author>},
-  title        = {<title>},
-  year         = {<year>},
-  howpublished = {\url{https://github.com/<your-username>/<your-repo>}}
 }
 ```
 
